@@ -1,5 +1,3 @@
-
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,35 +10,61 @@ namespace SaveSystem
             string dataAsString = JsonUtility.ToJson(data);
             PlayerPrefs.SetString(key, dataAsString);
             PlayerPrefs.Save();
+            Debug.Log($"The file have been saved successfully key: {key}");
         }
 
-        public static T LoadObject<T>(string key) where T : class , ISave
+        public static bool LoadObject<T>(string key,out T saveData) where T : class , ISave
         {
-            if (!PlayerPrefs.HasKey(key)) 
-                throw new Exception($"Can not find save data using key: {key}");
+            if (!PlayerPrefs.HasKey(key))
+            {
+                saveData = null;
+                Debug.LogWarning($"Can not find save data using key: {key}");
+                return false;
+            }
             
             string dataAsString = PlayerPrefs.GetString(key);
-            return JsonUtility.FromJson<T>(dataAsString);
+            saveData = JsonUtility.FromJson<T>(dataAsString);
+            Debug.Log($"The file have been loaded successfully key: {key}");
+            return true;
         }
         
-        public static void SaveObjects<T>(string key, IEnumerable<T> datas) where T : class, ISave
+        public static void SaveObjects<T>(string key, IEnumerable<T> data) where T : class, ISave
         {
-            SerializeArray<T> serializeData = new SerializeArray<T>(datas);
+            SerializeArray<T> serializeData = new SerializeArray<T>(data);
 
             string dataAsString = JsonUtility.ToJson(serializeData);
             PlayerPrefs.SetString(key, dataAsString);
             PlayerPrefs.Save();
+            Debug.Log($"The files have been saved successfully key: {key}");
         }
 
-        public static IEnumerable<T> LoadObjects<T>(string key) where T : class, ISave
+        public static bool LoadObjects<T>(string key,out IEnumerable<T> saveData) where T : class, ISave
         {
             if (!PlayerPrefs.HasKey(key))
-                throw new Exception($"Can not find save data using key: {key}");
+            {
+                saveData = null;
+                Debug.LogWarning($"Can not find save data using key: {key}");
+                return false;
+            }
             
             string dataAsString = PlayerPrefs.GetString(key);
             SerializeArray<T> serializeData = JsonUtility.FromJson<SerializeArray<T>>(dataAsString);
-                
-            return serializeData.SavedData;
+            saveData = serializeData.SavedData;
+            Debug.Log($"The files have been loaded successfully key: {key}");
+            return true;
+        }
+
+        public static bool DeleteKey(string key)
+        {
+            if (!PlayerPrefs.HasKey(key))
+            {
+                Debug.LogWarning($"Can not find and delete save data using key: {key}");
+                return false;
+            }
+            
+            PlayerPrefs.DeleteKey(key);
+            Debug.Log($"The file have been deleted successfully key: {key}");
+            return true;
         }
     }
 }
